@@ -1,6 +1,6 @@
 #include<cstdlib>
 #include<iostream>
-//#include<GL/glew.h>
+#include<GL/glew.h>
 #include <GLFW/glfw3.h>
 
 int main()
@@ -17,10 +17,10 @@ int main()
     atexit(glfwTerminate);
 
     //OpenGL Version 3.2 Core Profile を選択する
-    //glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    //glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-    //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     //ウィンドウを作成する
     GLFWwindow *const window(glfwCreateWindow(640, 480, "Hello!", NULL, NULL));
@@ -34,13 +34,13 @@ int main()
     glfwMakeContextCurrent(window);
 
     //GLEWを初期化する
-    //glewExperimental = GL_TRUE;
-    //if (glewInit() != GLEW_OK)
-    //{
+    glewExperimental = GL_TRUE;
+    if (glewInit() != GLEW_OK)
+    {
         //GLEWの初期化に失敗した
-    //    std::cerr << "Can't initialize GLEW" << std::endl;
-    //    return 1;
-    //}
+        std::cerr << "Can't initialize GLEW" << std::endl;
+        return 1;
+    }
 
     //垂直同期のタイミングを待つ
     glfwSwapInterval(1);
