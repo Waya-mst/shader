@@ -88,6 +88,27 @@ int main()
     //背景色を指定する
     glClearColor(1.0f, 0.5f, 1.0f, 0.5f);
 
+    //頂点シェーダのソースプログラム
+    static constexpr GLchar vsrc[] =
+        "#version 150 core¥n"
+        "in vec4 position;¥n"
+        "void main()¥n"
+        "{¥n"
+        "  gl_Position = position;¥n"
+        "}¥n";
+
+    //フラグメントシェーダのソースプログラム
+    static constexpr GLchar fsrc[] =
+        "#version 150 core¥n"
+        "in vec4 fragment;¥n"
+        "void main()¥n"
+        "{¥n"
+        "  fragment = vec4(1.0, 0.0, 0.0, 1.0);¥n"
+        "}¥n";
+
+    //プログラムオブジェクトを作成する
+    const GLuint program(createProgram(vsrc, fsrc));
+
     //ウィンドウが開いている間繰り返す
     while (glfwWindowShouldClose(window) == GL_FALSE)
     {
