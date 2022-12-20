@@ -1,7 +1,60 @@
 #include<cstdlib>
 #include<iostream>
+#include<fstream>
+#include<vector>
 #include<GL/glew.h>
 #include <GLFW/glfw3.h>
+
+//シェーダオブジェクトのコンパイル結果を表示する
+//  shader:シェーダオブジェクト名
+//  str:コンパイルエラーが発生した場所を示す文字列
+GLboolean printShaderInfoLog(GLuint shader, const char *str)
+{
+    //コンパイル結果を取得する
+    GLint status;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+    if (status == GL_FALSE) std::cerr << "Compile Error in" << str << std::endl;
+
+    //シェーダのコンパイル時のログの長さを取得
+    GLsizei bufSize;
+    glGetShaderiv(shader, GL_INFO_LOG_LENGTH , &bufSize);
+
+    if (bufSize > 1)
+    {
+        //シェーダのコンパイル時のログの内容を取得する
+        std::vector<GLchar> infoLog(bufSize);
+        GLsizei length;
+        glGetShaderInfoLog(shader, bufSize, &length, &infoLog[0]);
+        std::cerr << &infoLog[0] << std::endl;
+    }
+
+    return static_cast<GLboolean>(status);
+}
+
+//プログラムオブジェクトのリンク結果を表示する
+//  program:プログラムオブジェクト名
+GLboolean printProgramInfoLog(GLuint program)
+{
+    //リンク結果を取得する
+    GLint status;
+    glGetProgramiv(program, GL_LINK_STATUS, &status);
+    if (status == GL_FALSE)std::cerr << "Link Error." << std::endl;
+
+    //シェーダのリンク時のログの長さを取得
+    GLsizei bufSize;
+    glGetProgramiv(program, GL_INFO_LOG_LENGTH, &bufSize);
+
+    if (bufSize > 1)
+    {
+        //シェーダのリンク時のログの内容を取得
+        std::vector<GLchar> infoLog(bufSize);
+        GLsizei length;
+        glGetProgramInfoLog(program, bufSize, &length, &infoLog[0]);
+        std::cerr << &infoLog[0] << std::endl;
+    }
+
+    return static_cast<GLboolean>(status);
+}
 
 //プログラムオブジェクトを作成する
 //  vsrc: 頂点シェーダのソースプログラムの文字列
@@ -19,6 +72,7 @@ GLuint createProgram(const char *vsrc, const char *fsrc)
         glCompileShader(vobj);
 
         //頂点シェーダのシェーダオブジェクトをプログラムオブジェクトに組み込む
+        if (printShaderInfoLog(vobj, "vertex shader"))
         glAttachShader(program, vobj);
         glDeleteShader(vobj);
     }
@@ -31,6 +85,7 @@ GLuint createProgram(const char *vsrc, const char *fsrc)
         glCompileShader(fobj);
 
         //フラグメントシェーダのシェーダオブジェクトをプログラムオブジェクトに組み込む
+        if (printShaderInfoLog(fobj, "fragment shader"))
         glAttachShader(program, fobj);
         glDeleteShader(fobj);
     }
@@ -41,8 +96,14 @@ GLuint createProgram(const char *vsrc, const char *fsrc)
     glLinkProgram(program);
 
     //作成したプログラムオブジェクトを返す
+    if (printProgramInfoLog(program))
     return program;
+
+    //プログラムオブジェクトが作成できなければ0を返す
+    glDeleteProgram(program);
+    return 0;
 }
+
 int main()
  {
     //GLFWを初期化する
@@ -114,6 +175,9 @@ int main()
     {
         //ウィンドウを消去する
         glClear(GL_COLOR_BUFFER_BIT);
+
+        //シェーダプログラムの使用開始
+        glUseProgram(program);
 
         //
         //ここで描画処理
