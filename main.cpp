@@ -13,7 +13,8 @@ GLboolean printShaderInfoLog(GLuint shader, const char *str)
     //コンパイル結果を取得する
     GLint status;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
-    if (status == GL_FALSE) std::cerr << "Compile Error in" << str << std::endl;
+    if (status == GL_FALSE)
+    std::cerr << "Compile Error in :" << str << std::endl;
 
     //シェーダのコンパイル時のログの長さを取得
     GLsizei bufSize;
@@ -38,7 +39,8 @@ GLboolean printProgramInfoLog(GLuint program)
     //リンク結果を取得する
     GLint status;
     glGetProgramiv(program, GL_LINK_STATUS, &status);
-    if (status == GL_FALSE)std::cerr << "Link Error." << std::endl;
+    if (status == GL_FALSE)
+    std::cerr << "Link Error." << std::endl;
 
     //シェーダのリンク時のログの長さを取得
     GLsizei bufSize;
@@ -63,7 +65,7 @@ GLuint createProgram(const char *vsrc, const char *fsrc)
 {
     //空のプロブラムオブジェクトを作成
     const GLuint program(glCreateProgram());
-
+    
     if (vsrc != NULL)
     {
         //頂点シェーダのシェーダオブジェクトを作成する
@@ -102,6 +104,64 @@ GLuint createProgram(const char *vsrc, const char *fsrc)
     //プログラムオブジェクトが作成できなければ0を返す
     glDeleteProgram(program);
     return 0;
+}
+
+//シェーダのソースファイルを読み込んだメモリを返す
+//  name:シェーダのソースファイル名
+//  buffer:読み込んだソースファイルのテキスト
+bool readShaderSource(const char *name, std::vector<GLchar> &buffer)
+{
+    //ファイル名がNULLだった
+    if (name == NULL)
+    return false;
+
+    //ソースファイルを開く
+    std::ifstream file(name, std::ios::binary);
+    if(file.fail())
+    {
+        //開けなかった
+        std::cerr << "Error: Can't open source file: " << name << std::endl;
+        return false;
+    }
+
+    //ファイルの末尾に移動し現在位置(=ファイルサイズ)を取得
+    file.seekg(0L, std::ios::end);
+    GLsizei length = static_cast<GLsizei>(file.tellg());
+
+    //ファイルサイズのメモリを確保
+    buffer.resize(length + 1);
+
+    //ファイルを先頭から読み込む
+    file.seekg(0L, std::ios::beg);
+    file.read(buffer.data(), length);
+    buffer[length] = '\0';
+
+    if (file.fail())
+    {
+        //上手く読み込めなかった
+        std::cerr << "Error: Could not read source file: " << name << std::endl;
+        file.close();
+        return false;
+    }
+
+    //読み込み成功
+    file.close();
+    return true;
+}
+
+//シェーダのソースファイルを読み込んでプログラムオブジェクトを作成する
+//  vert:頂点シェーダのソースファイル名
+//  frag:フラグメントシェーダのソースファイル名
+GLuint loadProgram(const char *vert, const char *frag)
+{
+    //シェーダのソースファイルを読み込む
+    std::vector<GLchar> vsrc;
+    const bool vstat(readShaderSource(vert, vsrc));
+    std::vector<GLchar> fsrc;
+    const bool fstat(readShaderSource(frag, fsrc));
+
+    //プログラムオブジェクトを作成
+    return vstat && fstat ? createProgram(vsrc.data(), fsrc.data()) : 0;
 }
 
 int main()
@@ -150,25 +210,25 @@ int main()
     glClearColor(1.0f, 0.5f, 1.0f, 0.5f);
 
     //頂点シェーダのソースプログラム
-    static constexpr GLchar vsrc[] =
-        "#version 150 core¥n"
-        "in vec4 position;¥n"
-        "void main()¥n"
-        "{¥n"
-        "  gl_Position = position;¥n"
-        "}¥n";
+    //static constexpr GLchar vsrc[] =
+    //    "#version 150 core¥n"
+    //    "in vec4 position;¥n"
+    //    "void main()¥n"
+    //    "{¥n"
+    //    "  gl_Position = position;¥n"
+    //    "}¥n";
 
     //フラグメントシェーダのソースプログラム
-    static constexpr GLchar fsrc[] =
-        "#version 150 core¥n"
-        "in vec4 fragment;¥n"
-        "void main()¥n"
-        "{¥n"
-        "  fragment = vec4(1.0, 0.0, 0.0, 1.0);¥n"
-        "}¥n";
+    //static constexpr GLchar fsrc[] =
+    //    "#version 150 core¥n"
+    //    "in vec4 fragment;¥n"
+    //    "void main()¥n"
+    //    "{¥n"
+    //    "  fragment = vec4(1.0, 0.0, 0.0, 1.0);¥n"
+    //    "}¥n";
 
     //プログラムオブジェクトを作成する
-    const GLuint program(createProgram(vsrc, fsrc));
+    const GLuint program(loadProgram("point.vert", "point.frag"));
 
     //ウィンドウが開いている間繰り返す
     while (glfwWindowShouldClose(window) == GL_FALSE)
