@@ -2,5 +2,3 @@ a.out
 main.o
 main.s
 .vscode
-point.frag
-point.vert

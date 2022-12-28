@@ -2,8 +2,10 @@
 #include<iostream>
 #include<fstream>
 #include<vector>
+#include<memory>
 #include<GL/glew.h>
-#include <GLFW/glfw3.h>
+#include<GLFW/glfw3.h>
+#include"Shape.h"
 
 //シェーダオブジェクトのコンパイル結果を表示する
 //  shader:シェーダオブジェクト名
@@ -164,6 +166,15 @@ GLuint loadProgram(const char *vert, const char *frag)
     return vstat && fstat ? createProgram(vsrc.data(), fsrc.data()) : 0;
 }
 
+//矩形の頂点の位置
+constexpr Object::Vertex rectangleVertex[] =
+{
+    { -0.5f, -0.5f },
+    {  0.5f, -0.5f },
+    {  0.5f,  0.5f },
+    { -0.5f,  0.5f }
+};
+
 int main()
  {
     //GLFWを初期化する
@@ -207,7 +218,7 @@ int main()
     glfwSwapInterval(1);
     
     //背景色を指定する
-    glClearColor(1.0f, 0.5f, 1.0f, 0.5f);
+    glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
 
     //頂点シェーダのソースプログラム
     //static constexpr GLchar vsrc[] =
@@ -230,6 +241,9 @@ int main()
     //プログラムオブジェクトを作成する
     const GLuint program(loadProgram("point.vert", "point.frag"));
 
+    //図形データを作成
+    std::unique_ptr<const Shape> shape(new Shape(2, 4, rectangleVertex));
+
     //ウィンドウが開いている間繰り返す
     while (glfwWindowShouldClose(window) == GL_FALSE)
     {
@@ -239,9 +253,8 @@ int main()
         //シェーダプログラムの使用開始
         glUseProgram(program);
 
-        //
-        //ここで描画処理
-        //
+        //図形を描画する
+        shape->draw();
 
         //カラーバッファを入れ替える
         glfwSwapBuffers(window);
